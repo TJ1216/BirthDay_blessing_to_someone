@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐！</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- GSAP 动画库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff9eaa',
+                        secondary: '#a7d7e8',
+                        accent: '#ffc8dd',
+                        light: '#f8f9fa',
+                        dark: '#343a40'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }
+            .text-shadow-lg {
+                text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+        }
+
+        /* 自定义样式 */
+        body {
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+
+        .character-img {
+            transition: all 0.5s ease;
+        }
+
+        .character-img:hover {
+            transform: scale(1.05);
+        }
+
+
+        .music-note {
+            position: absolute;
+            font-size: 24px;
+            color: #ff9eaa;
+            animation: float-music 3s ease-in-out infinite;
+        }
+
+        @keyframes float-music {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 1;
+            }
+        }
+
+        .birthday-message {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+        }
+
+        .birthday-message.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .memory-card {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.8s ease;
+        }
+
+        .memory-card.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .memory-card:nth-child(even) {
+            transform: translateX(50px);
+        }
+
+        .memory-card:nth-child(even).visible {
+            transform: translateX(0);
+        }
+
+        .advice-card {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.6s ease;
+        }
+
+        .advice-card.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white bg-opacity-90 shadow-md fixed w-full z-50 bg-blur">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <img src="https://p11-doubao-search-sign.byteimg.com/labis/b50bcad54c415483907b8554f8b33491~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=58SDJtobZ6fL%2FhizKH5ZqJ5Egcc%3D" alt="轻音少女" class="w-10 h-10 rounded-full">
+                <span class="text-xl font-bold text-primary">轻音少女主题生日祝福</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#home" class="text-gray-700 hover:text-primary transition-colors">首页</a>
+                <a href="#message" class="text-gray-700 hover:text-primary transition-colors">生日祝福</a>
+                <a href="#memories" class="text-gray-700 hover:text-primary transition-colors">成长回忆</a>
+                <a href="#advice" class="text-gray-700 hover:text-primary transition-colors">学习建议</a>
+                <a href="#gallery" class="text-gray-700 hover:text-primary transition-colors">角色画廊</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-700">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-2">
+                <a href="#home" class="text-gray-700 hover:text-primary transition-colors py-2">首页</a>
+                <a href="#message" class="text-gray-700 hover:text-primary transition-colors py-2">生日祝福</a>
+                <a href="#memories" class="text-gray-700 hover:text-primary transition-colors py-2">成长回忆</a>
+                <a href="#advice" class="text-gray-700 hover:text-primary transition-colors py-2">学习建议</a>
+                <a href="#gallery" class="text-gray-700 hover:text-primary transition-colors py-2">角色画廊</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 首页/英雄区域 -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-16 relative overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-pink-100 to-blue-100 opacity-80"></div>
+            <!-- 装饰性音符 -->
+            <div id="music-notes-container"></div>
+        </div>
+
+        <div class="container mx-auto px-4 py-16 relative z-10">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-1/2 text-center md:text-left mb-10 md:mb-0">
+                    <h1 class="text-4xl md:text-6xl font-bold text-primary mb-4 text-shadow-lg">
+                        生日快乐，<span id="birthday-name" class="text-secondary">ZYJ</span>！
+                    </h1>
+                    <p class="text-xl md:text-2xl text-gray-700 mb-8">
+                        愿你的生日充满欢乐与惊喜，愿你的未来如轻音少女般充满活力与梦想！
+                    </p>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
+                        <button id="play-music" class="bg-primary hover:bg-pink-500 text-white font-bold py-3 px-6 rounded-full transition-colors flex items-center justify-center">
+                            <i class="fa fa-music mr-2"></i> 播放生日歌
+                        </button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="https://p26-doubao-search-sign.byteimg.com/labis/222e524fa6e1f7b72b369d3f1fe5173f~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=m7E2CsedyZVmGW4daHLPBo4735Y%3D" alt="轻音少女生日" class="w-full max-w-md rounded-lg shadow-2xl animate-float">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 生日祝福区域 -->
+    <section id="message" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">来自轻音少女的祝福</h2>
+                <div class="w-24 h-1 bg-primary mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="birthday-message">
+                    <div class="bg-gradient-to-r from-pink-100 to-pink-200 p-8 rounded-lg shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/b50bcad54c415483907b8554f8b33491~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=58SDJtobZ6fL%2FhizKH5ZqJ5Egcc%3D" alt="平泽唯" class="w-16 h-16 rounded-full mr-4">
+                            <h3 class="text-xl font-bold">平泽唯</h3>
+                        </div>
+                        <p class="text-gray-700">
+                            生日快乐，<span id="name-in-message1">ZYJ</span>！虽然我有时候也会觉得学习很难，但是只要坚持下去，一定会有收获的！就像弹吉他一样，每天练习一点点，总有一天会弹出美妙的音乐。加油哦！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="birthday-message" style="transition-delay: 0.2s;">
+                    <div class="bg-gradient-to-r from-blue-100 to-blue-200 p-8 rounded-lg shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <img src="https://p3-doubao-search-sign.byteimg.com/labis/848f87c624ea8f57509ae4d568c62293~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=JmK3M%2BQh7JuzJS%2BOIwP%2BzmbWdzI%3D" alt="秋山澪" class="w-16 h-16 rounded-full mr-4">
+                            <h3 class="text-xl font-bold">秋山澪</h3>
+                        </div>
+                        <p class="text-gray-700">
+                            生日快乐！作为计算机专业的学生，我理解你的压力。记住，遇到困难时不要害怕寻求帮助，团队合作很重要。就像我们轻音部一样，大家一起努力，就能创造出美好的音乐。相信自己，你一定可以的！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="birthday-message" style="transition-delay: 0.4s;">
+                    <div class="bg-gradient-to-r from-green-100 to-green-200 p-8 rounded-lg shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/tos-cn-i-xv4ileqgde/6fc36718101a4f6fa4877c0ea8ead3c9~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=uSEOtDxxUal6Fx7EUeP7jArRxnM%3D" alt="琴吹䌷" class="w-16 h-16 rounded-full mr-4">
+                            <h3 class="text-xl font-bold">琴吹䌷</h3>
+                        </div>
+                        <p class="text-gray-700">
+                            生日快乐，<span id="name-in-message3">ZYJ</span>！考研确实是一条充满挑战的道路，但请记住，每一步都算数。就像音乐需要不断练习一样，知识也需要不断积累。相信你的努力一定会有回报的！如果需要任何帮助，随时告诉我哦！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="birthday-message" style="transition-delay: 0.6s;">
+                    <div class="bg-gradient-to-r from-yellow-100 to-yellow-200 p-8 rounded-lg shadow-lg">
+                        <div class="flex items-center mb-4">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/labis/dc2009c659bca2a9e8825d02bac0143d~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=toCo2R5lW9efjQJ0IGBV8lZ9BxQ%3D" alt="中野梓" class="w-16 h-16 rounded-full mr-4">
+                            <h3 class="text-xl font-bold">中野梓</h3>
+                        </div>
+                        <p class="text-gray-700">
+                            生日快乐！虽然学习计算机科学可能会遇到很多困难，但请不要放弃。就像练习吉他一样，遇到难的曲子时，我们可以分解成小部分来练习。学习也是一样，把难题分解成小步骤，一步步解决。我相信你一定可以克服困难，实现考研的目标！
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 成长回忆区域 -->
+    <section id="memories" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">成长的足迹</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">每一步都算数，每一次努力都值得纪念。让我们一起回顾你的成长历程，为未来加油！</p>
+                <div class="w-24 h-1 bg-primary mx-auto mt-4"></div>
+            </div>
+
+            <div class="space-y-12">
+                <div class="memory-card">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="md:flex">
+                            <div class="md:w-1/3">
+                                <div class="h-64 md:h-full bg-gradient-to-br from-pink-300 to-blue-300 flex items-center justify-center">
+                                    <i class="fa fa-graduation-cap text-6xl text-white"></i>
+                                </div>
+                            </div>
+                            <div class="p-6 md:w-2/3">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl mr-4">1</div>
+                                    <h3 class="text-xl font-bold">大学入学</h3>
+                                </div>
+                                <p class="text-gray-700 mb-4">
+                                    还记得刚踏入大学校园的那一刻吗？带着对计算机科学的好奇和憧憬，你开始了这段充满挑战的旅程。虽然一开始可能有些迷茫，但你勇敢地迈出了第一步。
+                                </p>
+                                <p class="text-gray-600 italic">
+                                    "每一个伟大的旅程都始于第一步。"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="memory-card">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="md:flex flex-row-reverse">
+                            <div class="md:w-1/3">
+                                <div class="h-64 md:h-full bg-gradient-to-br from-purple-300 to-green-300 flex items-center justify-center">
+                                    <i class="fa fa-code text-6xl text-white"></i>
+                                </div>
+                            </div>
+                            <div class="p-6 md:w-2/3">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xl mr-4">2</div>
+                                    <h3 class="text-xl font-bold">编程初体验</h3>
+                                </div>
+                                <p class="text-gray-700 mb-4">
+                                    第一次写出"Hello World"程序，第一次解决一个算法问题，第一次完成一个小项目...这些看似微小的成就，都是你成长道路上的里程碑。即使遇到困难，你也没有放弃。
+                                </p>
+                                <p class="text-gray-600 italic">
+                                    "编程不仅仅是写代码，更是解决问题的思维方式。"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="memory-card">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="md:flex">
+                            <div class="md:w-1/3">
+                                <div class="h-64 md:h-full bg-gradient-to-br from-yellow-300 to-red-300 flex items-center justify-center">
+                                    <i class="fa fa-users text-6xl text-white"></i>
+                                </div>
+                            </div>
+                            <div class="p-6 md:w-2/3">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-white font-bold text-xl mr-4">3</div>
+                                    <h3 class="text-xl font-bold">友谊与成长</h3>
+                                </div>
+                                <p class="text-gray-700 mb-4">
+                                    在大学的日子里，你也许结交了新的朋友，与朋友一起学习，一起成长。这些友谊将是你人生中最宝贵的财富之一。
+                                </p>
+                                <p class="text-gray-600 italic">
+                                    "一个人可以走得很快，但一群人可以走得更远。"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="memory-card">
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="md:flex flex-row-reverse">
+                            <div class="md:w-1/3">
+                                <div class="h-64 md:h-full bg-gradient-to-br from-blue-300 to-purple-300 flex items-center justify-center">
+                                    <i class="fa fa-book text-6xl text-white"></i>
+                                </div>
+                            </div>
+                            <div class="p-6 md:w-2/3">
+                                <div class="flex items-center mb-4">
+                                    <div class="w-12 h-12 rounded-full bg-green-400 flex items-center justify-center text-white font-bold text-xl mr-4">4</div>
+                                    <h3 class="text-xl font-bold">考研之路</h3>
+                                </div>
+                                <p class="text-gray-700 mb-4">
+                                    决定考研是一个重要的选择，虽然路途艰辛，但这将是对你意志和能力的一次重要考验。每一次挑灯夜读，每一次解决难题，都在让你变得更加坚强和优秀。
+                                </p>
+                                <p class="text-gray-600 italic">
+                                    "困难只会让我们变得更加强大。"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 学习建议区域 -->
+    <section id="advice" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">学习建议</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">作为计算机专业的学生，我们理解你的学习压力。这里有一些来自轻音少女们的建议，希望能帮助你更好地面对挑战。</p>
+                <div class="w-24 h-1 bg-primary mx-auto mt-4"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="advice-card bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg shadow-lg p-6 card-hover">
+                    <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white text-2xl mb-4">
+                        <i class="fa fa-lightbulb-o"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">分解复杂问题</h3>
+                    <p class="text-gray-700">
+                        面对复杂的编程问题或知识点时，试着将其分解成小的、可管理的部分。就像轻音部练习新曲子一样，一段一段地练习，最后再合奏。
+                    </p>
+                </div>
+
+                <div class="advice-card bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-lg p-6 card-hover" style="transition-delay: 0.2s;">
+                    <div class="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-white text-2xl mb-4">
+                        <i class="fa fa-clock-o"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">合理安排时间</h3>
+                    <p class="text-gray-700">
+                        制定一个合理的学习计划，避免临时抱佛脚。就像轻音部的练习一样，持续的、有规律的学习比突击更有效。别忘了给自己留出休息和放松的时间。
+                    </p>
+                </div>
+
+                <div class="advice-card bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-lg p-6 card-hover" style="transition-delay: 0.4s;">
+                    <div class="w-16 h-16 rounded-full bg-green-400 flex items-center justify-center text-white text-2xl mb-4">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">寻求帮助</h3>
+                    <p class="text-gray-700">
+                        不要害怕向同学、老师或网上社区寻求帮助。轻音部的成功来自于团队合作，学习也是一样。分享问题和解决方案会让你学得更好。
+                    </p>
+                </div>
+
+                <div class="advice-card bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg shadow-lg p-6 card-hover" style="transition-delay: 0.6s;">
+                    <div class="w-16 h-16 rounded-full bg-yellow-400 flex items-center justify-center text-white text-2xl mb-4">
+                        <i class="fa fa-code"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">实践出真知</h3>
+                    <p class="text-gray-700">
+                        编程是一项实践性很强的技能。不要只看书或视频，要多动手写代码。就像弹奏乐器一样，只有通过不断练习才能提高技能。
+                    </p>
+                </div>
+
+                <div class="advice-card bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-lg p-6 card-hover" style="transition-delay: 0.8s;">
+                    <div class="w-16 h-16 rounded-full bg-purple-400 flex items-center justify-center text-white text-2xl mb-4">
+                        <i class="fa fa-book"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">打好基础</h3>
+                    <p class="text-gray-700">
+                        计算机科学的基础很重要，如数据结构、算法、计算机组成原理等。就像音乐的基本功一样，扎实的基础会让你在高级 topics 上更容易理解和掌握。
+                    </p>
+                </div>
+
+                <div class="advice-card bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-lg p-6 card-hover" style="transition-delay: 1s;">
+                    <div class="w-16 h-16 rounded-full bg-red-400 flex items-center justify-center text-white text-2xl mb-4">
+                        <i class="fa fa-heart"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">保持兴趣</h3>
+                    <p class="text-gray-700">
+                        找到你对计算机科学的热爱点。无论是开发应用、设计游戏还是研究人工智能，保持兴趣是最好的学习动力。就像轻音部对音乐的热爱一样，热情会帮助你克服困难。
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-16 text-center">
+                <div class="bg-gradient-to-r from-primary to-secondary p-8 rounded-lg shadow-lg max-w-3xl mx-auto">
+                    <h3 class="text-2xl font-bold text-white mb-4">考研加油！</h3>
+                    <p class="text-white text-lg">
+                        考研是一条充满挑战的道路，但请相信，你的努力和坚持一定会有回报。就像轻音少女们通过不断练习最终实现梦想一样，你也一定能够实现自己的目标！
+                    </p>
+                    <button id="custom-message-btn" class="mt-6 bg-white text-primary hover:bg-gray-100 font-bold py-3 px-6 rounded-full transition-colors">
+                        点击获取专属鼓励
+                    </button>
+                    <div id="custom-message" class="mt-6 text-white text-lg hidden">
+                        <p>"每一次的努力都不会白费，每一次的跌倒都是为了更好地站起来。相信自己，你一定可以的！"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 角色画廊 -->
+    <section id="gallery" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-primary mb-4">轻音少女画廊</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">来看看轻音少女们的可爱瞬间吧！</p>
+                <div class="w-24 h-1 bg-primary mx-auto mt-4"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden character-img">
+                    <img src="https://p11-doubao-search-sign.byteimg.com/labis/b50bcad54c415483907b8554f8b33491~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=58SDJtobZ6fL%2FhizKH5ZqJ5Egcc%3D" alt="平泽唯" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2">平泽唯</h3>
+                        <p class="text-gray-600">
+                            轻音部的吉他手和主唱，虽然有时候有点天然呆，但对音乐充满热情。她的乐观和坚持精神值得我们学习！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden character-img">
+                    <img src="https://p3-doubao-search-sign.byteimg.com/labis/848f87c624ea8f57509ae4d568c62293~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=JmK3M%2BQh7JuzJS%2BOIwP%2BzmbWdzI%3D" alt="秋山澪" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2">秋山澪</h3>
+                        <p class="text-gray-600">
+                            轻音部的贝斯手，学习成绩优秀但有点害羞。她的认真和努力是我们学习的榜样！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden character-img">
+                    <img src="https://p26-doubao-search-sign.byteimg.com/tos-cn-i-xv4ileqgde/6fc36718101a4f6fa4877c0ea8ead3c9~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=uSEOtDxxUal6Fx7EUeP7jArRxnM%3D" alt="琴吹䌷" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2">琴吹䌷</h3>
+                        <p class="text-gray-600">
+                            轻音部的键盘手，性格温柔大方。她对朋友的关心和支持让我们感受到团队的温暖！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden character-img">
+                    <img src="https://p11-doubao-search-sign.byteimg.com/labis/f56a1b115fb1beb008b749f5d0e7b6c7~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=%2BjbS46zVNL7wsQr7YFOXI6YXT44%3D" alt="田井中律" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2">田井中律</h3>
+                        <p class="text-gray-600">
+                            轻音部的鼓手和部长，性格活泼开朗。她的乐观和领导力让团队充满活力！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden character-img">
+                    <img src="https://p26-doubao-search-sign.byteimg.com/labis/dc2009c659bca2a9e8825d02bac0143d~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=toCo2R5lW9efjQJ0IGBV8lZ9BxQ%3D" alt="中野梓" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2">中野梓</h3>
+                        <p class="text-gray-600">
+                            轻音部的第二吉他手，认真努力。她对音乐的执着和追求完美的精神值得我们学习！
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden character-img">
+                    <img src="https://p3-doubao-search-sign.byteimg.com/labis/d0407952432f7ea991d7479e14d4e3c4~tplv-be4g95zd3a-image.jpeg?lk3s=feb11e32&x-expires=1793591606&x-signature=ZPtoSGIZqQ%2BU%2FvmvdZ90a8a0aUI%3D" alt="轻音少女" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="text-xl font-bold mb-2">轻音部全员</h3>
+                        <p class="text-gray-600">
+                            轻音部的成员们虽然性格各异，但他们团结一心，共同追求音乐梦想。团队的力量是无穷的！
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-10">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-xl font-bold mb-2">轻音少女生日祝福网站</h3>
+                    <p class="text-gray-400">愿你的每一天都充满阳光和欢笑！</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-facebook"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-github"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 轻音少女生日祝福网站. 所有权利保留.</p>
+                <p class="mt-2">本网站仅供学习和娱乐目的使用，轻音少女相关内容归原作者所有。</p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- 音乐播放器 -->
+    <div id="music-player" class="fixed bottom-4 right-4 bg-white bg-opacity-90 rounded-full shadow-lg p-3 z-40 hidden">
+        <button id="pause-music" class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
+            <i class="fa fa-pause"></i>
+        </button>
+    </div>
+
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 移动端菜单切换
+            document.getElementById('mobile-menu-button').addEventListener('click', function() {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+
+            // 滚动动画
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            // 生日祝福卡片动画
+            const messageObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.birthday-message').forEach(card => {
+                messageObserver.observe(card);
+            });
+
+            // 成长回忆卡片动画
+            const memoryObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.memory-card').forEach(card => {
+                memoryObserver.observe(card);
+            });
+
+            // 学习建议卡片动画
+            const adviceObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.advice-card').forEach(card => {
+                adviceObserver.observe(card);
+            });
+
+            // 生成装饰性音符
+            createMusicNotes();
+
+            // 播放生日歌
+            document.getElementById('play-music').addEventListener('click', function() {
+                playBirthdaySong();
+                document.getElementById('music-player').classList.remove('hidden');
+            });
+
+            // 暂停生日歌
+            document.getElementById('pause-music').addEventListener('click', function() {
+                pauseBirthdaySong();
+                document.getElementById('music-player').classList.add('hidden');
+            });
+
+
+            // 专属鼓励按钮
+            document.getElementById('custom-message-btn').addEventListener('click', function() {
+                document.getElementById('custom-message').classList.toggle('hidden');
+                this.textContent = this.textContent === '点击获取专属鼓励' ? '收起鼓励' : '点击获取专属鼓励';
+            });
+
+            // 平滑滚动
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 70,
+                            behavior: 'smooth'
+                        });
+
+                        // 如果是移动端，点击后关闭菜单
+                        document.getElementById('mobile-menu').classList.add('hidden');
+                    }
+                });
+            });
+
+            // 初始化GSAP动画
+            initGSAPAnimations();
+        });
+
+        // 创建装饰性音符
+        function createMusicNotes() {
+            const container = document.getElementById('music-notes-container');
+            const notes = ['♪', '♫', '♬', '♩'];
+
+            for (let i = 0; i < 15; i++) {
+                const note = document.createElement('div');
+                note.className = 'music-note';
+                note.textContent = notes[Math.floor(Math.random() * notes.length)];
+                note.style.left = `${Math.random() * 100}%`;
+                note.style.top = `${Math.random() * 100}%`;
+                note.style.animationDelay = `${Math.random() * 3}s`;
+                note.style.animationDuration = `${3 + Math.random() * 2}s`;
+                container.appendChild(note);
+            }
+        }
+
+        // 播放生日歌
+        function playBirthdaySong() {
+            // 创建音频上下文
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // 生日歌音符频率
+            const notes = [
+                261.63, 261.63, 293.66, 261.63, 349.23, 329.63, // C C D C F E
+                261.63, 261.63, 293.66, 261.63, 392.00, 349.23, // C C D C G F
+                261.63, 261.63, 523.25, 440.00, 349.23, 329.63, // C C C' A F E
+                466.16, 466.16, 440.00, 349.23, 392.00, 349.23  // D# D# A F G F
+            ];
+
+            // 音符持续时间
+            const noteDuration = 0.3;
+
+            // 播放音符
+            let startTime = audioContext.currentTime;
+
+            notes.forEach((frequency, index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.value = frequency;
+
+                gainNode.gain.setValueAtTime(0, startTime + index * noteDuration);
+                gainNode.gain.linearRampToValueAtTime(0.5, startTime + index * noteDuration + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + (index + 1) * noteDuration);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start(startTime + index * noteDuration);
+                oscillator.stop(startTime + (index + 1) * noteDuration);
+            });
+
+            // 存储音频上下文以便后续暂停
+            window.birthdaySongAudioContext = audioContext;
+        }
+
+        // 暂停生日歌
+        function pauseBirthdaySong() {
+            if (window.birthdaySongAudioContext) {
+                window.birthdaySongAudioContext.close();
+                window.birthdaySongAudioContext = null;
+            }
+        }
+
+
+        // 初始化GSAP动画
+        function initGSAPAnimations() {
+            // 标题动画
+            gsap.from('#home h1', {
+                opacity: 0,
+                y: -50,
+                duration: 1,
+                delay: 0.5
+            });
+
+            // 副标题动画
+            gsap.from('#home p', {
+                opacity: 0,
+                y: -30,
+                duration: 1,
+                delay: 0.8
+            });
+
+            // 按钮动画
+            gsap.from('#home button', {
+                opacity: 0,
+                y: 30,
+                duration: 1,
+                delay: 1.1,
+                stagger: 0.2
+            });
+
+            // 图片动画
+            gsap.from('#home img', {
+                opacity: 0,
+                scale: 0.8,
+                duration: 1.5,
+                delay: 1
+            });
+
+            // 滚动触发动画
+            gsap.registerPlugin(ScrollTrigger);
+
+            // 祝福区域标题动画
+            gsap.from('#message h2', {
+                scrollTrigger: {
+                    trigger: '#message',
+                    start: 'top 80%'
+                },
+                opacity: 0,
+                y: -30,
+                duration: 0.8
+            });
+
+            // 回忆区域标题动画
+            gsap.from('#memories h2', {
+                scrollTrigger: {
+                    trigger: '#memories',
+                    start: 'top 80%'
+                },
+                opacity: 0,
+                y: -30,
+                duration: 0.8
+            });
+
+            // 建议区域标题动画
+            gsap.from('#advice h2', {
+                scrollTrigger: {
+                    trigger: '#advice',
+                    start: 'top 80%'
+                },
+                opacity: 0,
+                y: -30,
+                duration: 0.8
+            });
+
+            // 画廊区域标题动画
+            gsap.from('#gallery h2', {
+                scrollTrigger: {
+                    trigger: '#gallery',
+                    start: 'top 80%'
+                },
+                opacity: 0,
+                y: -30,
+                duration: 0.8
+            });
+        }
+    </script>
+</body>
+</html>
